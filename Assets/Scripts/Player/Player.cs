@@ -10,9 +10,55 @@ public class Player : NetworkBehaviour
 
     [Header("Settings")]
     [SerializeField] private float motorForce = 350f;
-    [SerializeField] private float brakeForce = 9f;
     [SerializeField] private float turningSpeed = 200f;
     [SerializeField] private float autoBrakeForce = 3f;
+
+    public State state;
+    public MovingSpeedMeter speedMeter 
+    { 
+        get 
+        {
+            switch (movingSpeed)
+            {
+                case >= 20:
+                    return MovingSpeedMeter.extreamelyFast;
+                case >= 12:
+                    return MovingSpeedMeter.fast;
+                case >= 7:
+                    return MovingSpeedMeter.normal;
+                case <= 0:
+                    return MovingSpeedMeter.none;
+                default:
+                    return MovingSpeedMeter.slow;
+            } 
+        }
+    }
+    public bool isTurning { get; private set; }
+    public bool isTurningRight { get; private set; }
+    public bool isMoving { get { return state != State.Running; } }
+    public float movingSpeed
+    {
+        get
+        {
+            return Mathf.Abs(rb.velocity.x) + Mathf.Abs(rb.velocity.y);
+        }
+    }
+    public enum State
+    {
+        Running,
+        Forward,
+        Backwards,
+        AutoBreaking,
+    }
+
+    public enum MovingSpeedMeter
+    {
+        none,
+        slow,
+        normal,
+        fast,
+        extreamelyFast,
+    }
 
     private void Start()
     {
@@ -23,7 +69,8 @@ public class Player : NetworkBehaviour
     private void FixedUpdate()
     {
         if (!IsOwner) return;
-        HandleMotor();        
+        HandleMotor();
+        Debug.Log(speedMeter);
     }
 
     private void HandleMotor()
@@ -34,26 +81,26 @@ public class Player : NetworkBehaviour
         /* 
          * Handle Forward Movement
         */
+        // Moving Forward
         if (movementInput > 0.1f)
         {
             rb.AddForce(transform.up * movementInput * motorForce * Time.fixedDeltaTime, ForceMode2D.Force);
+            state = State.Forward;
         }
-        // Braking Or Moving Backwards
+ 
         else if (movementInput < -0.1f)
         {
             // Moving Backwards
-            if (rb.velocity.y <= 0)
-                rb.AddForce(transform.up * movementInput * motorForce * Time.fixedDeltaTime, ForceMode2D.Force);
-
-            // Breaking
-            else
-                rb.velocity = new Vector2(Mathf.MoveTowards(rb.velocity.x, 0, Time.fixedDeltaTime * brakeForce), Mathf.MoveTowards(rb.velocity.y, 0, Time.fixedDeltaTime * brakeForce));
-
+            rb.AddForce(transform.up * movementInput * motorForce * Time.fixedDeltaTime, ForceMode2D.Force);
+            state = State.Backwards;
         }
+
         else
         {
             // Not using motor
             rb.velocity = new Vector2(Mathf.MoveTowards(rb.velocity.x, 0, Time.fixedDeltaTime * autoBrakeForce), Mathf.MoveTowards(rb.velocity.y, 0, Time.fixedDeltaTime * autoBrakeForce));
+            if (rb.velocity != Vector2.zero) state = State.AutoBreaking;
+            else state = State.Running;
         }
 
         /*
@@ -61,11 +108,17 @@ public class Player : NetworkBehaviour
         */
         if (turn != 0)
         {
+            if (turn > 0) isTurningRight = true;
+            else isTurningRight = false;
+
             rb.angularVelocity = -turn * turningSpeed;
+            isTurning = true;
         }
         else
         {
             rb.angularVelocity = 0;
+            isTurning = false;
+            isTurningRight = false;
         }
     }
 }
