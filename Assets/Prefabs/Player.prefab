@@ -45,6 +45,7 @@ GameObject:
   - component: {fileID: 649593367531799167}
   - component: {fileID: 4487414724041601293}
   - component: {fileID: 2433660057808074453}
+  - component: {fileID: -2899055740327418766}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -77,7 +78,7 @@ PolygonCollider2D:
   m_GameObject: {fileID: 5374361437021318593}
   m_Enabled: 1
   m_Density: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: b260606dc83e5ad49bef966a80f67778, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -176,12 +177,42 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b99a11ce294d59c4486ed42c0c69b15e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rb: {fileID: 0}
-  forwardMotorForce: 350
-  backwardsMotorForce: 750
-  brakeForce: 9
+  rb: {fileID: 649593367531799167}
+  motorForce: 350
   turningSpeed: 200
   autoBrakeForce: 3
+  state: 0
+--- !u!114 &-2899055740327418766
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5374361437021318593}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9f7879539726cd1469c2a454f517d4bf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  UseUnreliableDeltas: 0
+  SyncPositionX: 1
+  SyncPositionY: 1
+  SyncPositionZ: 0
+  SyncRotAngleX: 0
+  SyncRotAngleY: 0
+  SyncRotAngleZ: 1
+  SyncScaleX: 0
+  SyncScaleY: 0
+  SyncScaleZ: 0
+  PositionThreshold: 0.001
+  RotAngleThreshold: 0.01
+  ScaleThreshold: 0.01
+  UseQuaternionSynchronization: 0
+  UseQuaternionCompression: 0
+  UseHalfFloatPrecision: 0
+  InLocalSpace: 0
+  Interpolate: 1
+  SlerpPosition: 0
 --- !u!1 &5736090311171641834
 GameObject:
   m_ObjectHideFlags: 0

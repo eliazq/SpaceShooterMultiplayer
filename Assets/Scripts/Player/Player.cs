@@ -70,7 +70,6 @@ public class Player : NetworkBehaviour
     {
         if (!IsOwner) return;
         HandleMotor();
-        Debug.Log(speedMeter);
     }
 
     private void HandleMotor()
