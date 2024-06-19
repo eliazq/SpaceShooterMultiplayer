@@ -5,14 +5,19 @@ using Unity.Netcode;
 
 public class Player : NetworkBehaviour
 {
-    [Header("References")]
+    [Header("Reference Components")]
     [SerializeField] private Rigidbody2D rb;
+    [Header("Reference Prefabs & GameObjects")]
+    [SerializeField] private GameObject bulletPrefab;
+    [SerializeField] public Transform shootingPoint;
+    private int health = 100;
 
     [Header("Settings")]
     [SerializeField] private float motorForce = 350f;
     [SerializeField] private float turningSpeed = 200f;
     [SerializeField] private float autoBrakeForce = 3f;
 
+    [Header("Public Settings")]
     public State state;
     public MovingSpeedMeter speedMeter 
     { 
@@ -66,10 +71,46 @@ public class Player : NetworkBehaviour
         
         if (rb == null) rb = GetComponent<Rigidbody2D>();
     }
+    private void Update()
+    {
+        if (!IsOwner) return;
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            SpawnBulletServerRpc(new ServerRpcParams());
+        }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void SpawnBulletServerRpc(ServerRpcParams rpcParams = default)
+    {
+        ulong senderClientId = rpcParams.Receive.SenderClientId;
+
+        // Find the NetworkObject associated with the ClientId
+        NetworkObject senderNetworkObject = GetNetworkObjectByClientId(senderClientId);
+
+        GameObject bullet = Instantiate(bulletPrefab);
+        bullet.transform.position = senderNetworkObject.GetComponent<Player>().shootingPoint.position;
+        bullet.transform.rotation = transform.rotation;
+        bullet.GetComponent<NetworkObject>().Spawn(true);
+        bullet.GetComponent<Bullet>().ownerId = senderClientId;
+    }
     private void FixedUpdate()
     {
         if (!IsOwner) return;
         HandleMotor();
+    }
+
+    private NetworkObject GetNetworkObjectByClientId(ulong clientId)
+    {
+        foreach (var networkObject in NetworkManager.Singleton.SpawnManager.SpawnedObjects.Values)
+        {
+            if (networkObject.OwnerClientId == clientId)
+            {
+                return networkObject;
+            }
+        }
+        return null;
     }
 
     private void HandleMotor()
@@ -118,6 +159,16 @@ public class Player : NetworkBehaviour
             rb.angularVelocity = 0;
             isTurning = false;
             isTurningRight = false;
+        }
+    }
+    
+    public void Damage(int damage)
+    {
+        health -= damage;
+        if (health <= 0)
+        {
+            health = 0;
+            Destroy(gameObject);
         }
     }
 }
