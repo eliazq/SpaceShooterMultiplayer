@@ -26,6 +26,23 @@ public class Bullet : NetworkBehaviour
         if (ownerId == player.OwnerClientId) return;
 
         // DAMAGE ENEMY PLAYER
+        NetworkObject playerNetworkObject = player.GetComponent<NetworkObject>();
+        DamagePlayerServerRpc(playerNetworkObject, damageAmount);
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void DamagePlayerServerRpc(NetworkObjectReference networkObjectReference, int damageAmount)
+    {
+        DamagePlayerClientRpc(networkObjectReference, damageAmount);
+    }
+
+    [ClientRpc(RequireOwnership = false)]
+    private void DamagePlayerClientRpc(NetworkObjectReference networkObjectReference, int damageAmount)
+    {
+        if (!networkObjectReference.TryGet(out NetworkObject playerNetworkObject)) Debug.LogError("Couldnt Get NetworkObject From Player");
+
+        Player player = playerNetworkObject.GetComponent<Player>();
         player.Damage(damageAmount);
+
     }
 }
